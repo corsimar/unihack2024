@@ -34,3 +34,4 @@ with col3:
             st.markdown(f"<div style='text-align: center;'>{score}</div>", unsafe_allow_html=True)
         else:
             st.markdown(f"<div style='text-align:center; background-color: gray;'>{score}</div>", unsafe_allow_html=True)
+            

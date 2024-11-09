@@ -127,3 +127,16 @@ def get_user_xp():
     else:
         xp = None
     return xp
+
+def get_locked_lessons():
+    user_id = st.session_state.user_id
+    response = requests.get(f"{BACKEND_URL}/get-locked-lessons/{user_id}")
+    if response.status_code == 200:
+        lessons = response.json()
+    return lessons
+
+def get_experiment(lesson_id):
+    response = requests.get(f"{BACKEND_URL}/get-experiment/{lesson_id}")
+    if response.status_code == 200:
+        experiment = response.json()
+    return experiment

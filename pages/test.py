@@ -42,23 +42,3 @@ st.title("Synthetic Height Prediction Dataset")
 # Generate and display the data
 data = generate_data(100)
 st.write("Generated Synthetic Data", data)
-
-# Plotting histogram of height
-st.subheader("Height Distribution")
-fig, ax = plt.subplots()
-ax.hist(data["Height"], bins=20, color="skyblue", edgecolor="black")
-ax.set_xlabel("Height (cm)")
-ax.set_ylabel("Frequency")
-st.pyplot(fig)
-
-# Display correlations between features and height
-st.subheader("Feature Correlations")
-st.write(data.corr()["Height"].sort_values(ascending=False))
-
-# Additional scatter plot between Age and Height
-st.subheader("Age vs. Height Scatter Plot")
-fig2, ax2 = plt.subplots()
-ax2.scatter(data["Age"], data["Height"], alpha=0.5)
-ax2.set_xlabel("Age")
-ax2.set_ylabel("Height")
-st.pyplot(fig2)

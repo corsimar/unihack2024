@@ -88,6 +88,7 @@ def login():
     user = convert_objectid(user)
     return jsonify(user), 200
     
+
     
 
 # User endpoints (student)
@@ -100,10 +101,29 @@ def completeLesson():
 
 @app.route('/get-completed-lessons/<student_id>', methods=['GET'])
 def getCompletedLessons(student_id):
-    completed_lessons = list(stud_completed_less.find({'student_id': student_id}))
+    completed_lessons = list(stud_completed_less.find({'user_id': student_id}))
     completed_lessons = [convert_objectid(lesson) for lesson in completed_lessons]
 
     return jsonify(completed_lessons), 200
+
+#get locked lessons
+@app.route('/get-locked-lessons/<student_id>', methods=['GET'])
+def getLockedLessons(student_id):
+    #a lesson should be locked if it has a previous_lesson_id and the previous_lesson_id is not in the completed lessons
+    locked_lessons_ids = []
+    completed_lessons = list(stud_completed_less.find({'user_id': student_id}))
+    lessons = list(lessons_collection.find({}))
+    
+    for lesson in lessons:
+        if lesson['previous_lesson_id']:
+            if not stud_completed_less.find_one({'user_id': student_id, 'lesson_id': lesson['previous_lesson_id']}):
+                locked_lessons_ids.append(str(lesson['_id']))
+    locked_lessons = [convert_objectid(lesson) for lesson in lessons if str(lesson['_id']) in locked_lessons_ids]
+    #return the locked lessons ids
+    locked_lessons_ids = [lesson['_id'] for lesson in locked_lessons]
+    
+    return jsonify(locked_lessons_ids), 200
+
 
 @app.route('/get-user-xp/<user_id>', methods=['GET'])
 def xp(user_id):
@@ -128,6 +148,15 @@ def getExperiments():
     experiments_list = [convert_objectid(experiment) for experiment in experiments_list]
 
     return jsonify(experiments_list), 200
+
+@app.route('/get-experiment/<experiment_id>', methods=['GET'])
+def getExperiment(experiment_id):
+    experiment = experiments.find_one({'_id': ObjectId(experiment_id)})
+    if experiment:
+        experiment = convert_objectid(experiment)
+        return jsonify(experiment), 200
+    else:
+        return jsonify(message="Experiment not found"), 404
 
 # Run the app
 if __name__ == '__main__':
