@@ -21,11 +21,12 @@ if "title" not in st.session_state:
     st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
 
 solution = [10, 20]
+problem = "A company of juices needs your help. They want to sell juice at a capacity (volume) of 330mL. They wish to use as little material as possible to make the cans. Can you help them and optimize the minimum surface area needed to build such a can?" 
 
 st.title("Problem")
-st.write("A company of juices needs your help. They want to sell juice at a capacity (volume) of 330mL. They wish to use as little material as possible to make the cans. Can you help them and optimize the minimum surface area needed to build such a can?")
+st.write(problem)
 
-st.title("Visualise the problem")
+st.title("Visualize the problem")
 
 def update_height():
     st.session_state.height_visualise = height_slider
@@ -99,6 +100,7 @@ if st.button("Submit"):
     
     if radius == solution[0] and height == solution[1]:
         st.success("Well done! You found the optimum values")
+        st.button("Next")
     else:
         st.error("These are not the optimum values")
 
@@ -110,5 +112,68 @@ if radius_slider != st.session_state.radius_visualise:
     
 st.markdown("---")
 
+# -------------------- Explanation --------------------
 st.title("Are you having troubles?")
-st.button("Ask AI")
+from openai import OpenAI
+import streamlit as st
+
+# Set a maximum height for the chat input area
+st.markdown(
+    """
+    <style>
+    .stTextInput, .stButton, .stTextArea {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .stChatMessage {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+client = OpenAI()
+
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-4o-mini"
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        if "box" in prompt.lower() and "surface area" in prompt.lower():
+            response = (
+                "It sounds like you're working on a problem involving minimizing the surface area of a cylinder with a given volume, and you want me to view nicely anything related to math, like formulas"
+                "Let's break it down step by step. You mentioned a cylinder with a volume of 330 cm³. "
+                "First, let's define the variables: let 'r' be the radius of the base and 'h' be the height of the cylinder. "
+                "The volume of the cylinder is given by the formula: πr²h = 330 cm³. "
+                "To minimize the surface area, we need to express the surface area A = 2πr² + 2πrh in terms of one variable and then find its minimum value. "
+                "Where did you encounter problems in this process?"
+            )
+        else:
+            response_placeholder = st.empty()
+            st.session_state.messages.append({"role": "system", "content": problem})
+            stream = client.chat.completions.create(
+                model=st.session_state["openai_model"],
+                messages=[
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages
+                ],
+                stream=True,
+            )
+            response = st.write_stream(stream)
+            response_placeholder.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+

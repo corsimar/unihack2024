@@ -11,13 +11,14 @@ if "user_id" not in st.session_state:
 elif st.session_state.role == "professor" or st.session_state.role == "student":
     utils.login_redirecting()
 # Set page title
-st.title("Welcome to RevoLearn!")
-
+col1, col2, col3 = st.columns([2,6,2])
 # Create login form
-with st.form("login_form"):
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    submit_button = st.form_submit_button("Login")
+with col2:
+    st.title("Welcome to RevoLearn!")
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit_button = st.form_submit_button("Login")
 
 # Handle form submission
 if submit_button:

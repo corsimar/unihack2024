@@ -42,6 +42,8 @@ def remove_lesson(lesson_id):
 def restrict_access(allowed_role):
     if 'role' not in st.session_state:
         st.error("You should be logged in to access this page.")
+        if st.button("Login"):
+            reset_and_navigate("pages/login.py")
         st.stop()
     
     if st.session_state.role != allowed_role:
@@ -59,6 +61,20 @@ def complete_lesson(lesson_id):
     else:
         st.error("Failed to complete lesson.")
         
+def get_completed_lessons():
+    user_id = st.session_state.user_id
+    response = requests.get(f"{BACKEND_URL}/get-completed-lessons/{user_id}")
+    if response.status_code == 200:
+        lessons = response.json()
+    return lessons
+
+def get_lessons_student():
+    user_id = st.session_state.user_id
+    response = requests.get(f"{BACKEND_URL}/get-lessons-student/{user_id}")
+    if response.status_code == 200:
+        lesson_student = response.json()
+    return lesson_student
+
 def login(email, password):
     entry = {
         'email': email,
@@ -103,17 +119,11 @@ def logout():
     st.write("You have been logged out.")
     reset_and_navigate("pages/login.py")
     
-def user_xp(ammount):
+def get_user_xp():
     user_id = st.session_state.user_id
-    response = requests.get(f"{BACKEND_URL}/get-user/{user_id}")
+    response = requests.get(f"{BACKEND_URL}/get-user-xp/{user_id}")
     if response.status_code == 200:
-        user = response.json()
-        user['xp'] += ammount
-        response = requests.post(f"{BACKEND_URL}/xp", json=user)
-        if response.status_code == 200:
-            st.success("XP added successfully.")
-            return user['xp']
-        else:
-            st.error("Failed to add XP.")
+        xp = response.json()
     else:
-        st.error("Failed to add XP.")
+        xp = None
+    return xp

@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 #from flask_restplus import Api, Resource
 
 from openai_setup import genLesson 
-from database import db, client, lessons_collection, stud_completed_less, users
+from database import db, client, lessons_collection, stud_completed_less, users, experiments
 from utils import convert_objectid
 from bson import ObjectId
 
@@ -48,6 +48,21 @@ def getAllLessons():
     print(lessons)
     return jsonify(lessons), 200
 
+@app.route('/get-lessons-student/<student_id>', methods=['GET'])
+def getLessonsStudent(student_id):
+    student = users.find_one({'_id': ObjectId(student_id)})
+    if student:
+        lessons = list(lessons_collection.find({}))
+        lessons = [convert_objectid(lesson) for lesson in lessons]
+        #add an atribute to the lesson to indicate if it has been completed by the student
+        for lesson in lessons:
+            lesson['completed'] = False
+            if stud_completed_less.find_one({'user_id': student_id, 'lesson_id': str(lesson['_id'])}): 
+                lesson['completed'] = True 
+        return jsonify(lessons), 200
+    else:
+        return jsonify(message="Student not found"), 404
+
 @app.route('/get-previous-lessons', methods=['GET'])
 def getPreviousLessons():
     lessons = list(lessons_collection.find({}))
@@ -80,16 +95,39 @@ def login():
 def completeLesson():
     entry = request.json
     stud_completed_less.insert_one(entry)
+    
     return jsonify(message="Lesson completed successfully"), 200
 
-@app.route('/xp/<ammount>', methods=['POST'])
-def xp():
-    user = request.json
-    user_id = user['_id']
-    xp = user['xp'] + int(ammount)
-    users.update_one({'_id': ObjectId(user_id)}, {'$set': {'xp': xp}})
-    return jsonify(user['xp']), 200
+@app.route('/get-completed-lessons/<student_id>', methods=['GET'])
+def getCompletedLessons(student_id):
+    completed_lessons = list(stud_completed_less.find({'student_id': student_id}))
+    completed_lessons = [convert_objectid(lesson) for lesson in completed_lessons]
 
+    return jsonify(completed_lessons), 200
+
+@app.route('/get-user-xp/<user_id>', methods=['GET'])
+def xp(user_id):
+    # user_id = user_id
+    # user = users.find_one({'_id': ObjectId(user_id)})
+    
+    
+    # return jsonify(user['xp']), 200
+    #get user xp from completed lessons 
+    completed_lessons = list(stud_completed_less.find({'user_id': user_id}))
+    completed_lessons = [convert_objectid(lesson) for lesson in completed_lessons]
+    xp = 0
+    for lesson in completed_lessons:
+        lesson = lessons_collection.find_one({'_id': ObjectId(lesson['lesson_id'])})
+        xp += int(lesson['xp'])
+    return jsonify(xp), 200
+
+# Experiment endpoints
+@app.route('/get-experiments', methods=['GET'])
+def getExperiments():
+    experiments_list = list(experiments.find())
+    experiments_list = [convert_objectid(experiment) for experiment in experiments_list]
+
+    return jsonify(experiments_list), 200
 
 # Run the app
 if __name__ == '__main__':

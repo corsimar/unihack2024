@@ -9,17 +9,10 @@ if 'circles' not in st.session_state:
         2: [0.5, 0.5, 0.5]  # Coloană 3 cu trei cercuri inițiale
     }
 
-# Inițializăm starea valorilor pentru săgeți (cu valori personalizate pentru fiecare săgeată)
+# Inițializăm starea valorilor pentru săgeți
 if 'arrows' not in st.session_state:
     st.session_state.arrows = {
-        (0, 0): 2,  # Valoare săgeată între cercul 1 din coloană 1 și cercul 1 din coloană 2
-        (0, 1): 3,  # Valoare săgeată între cercul 1 din coloană 1 și cercul 2 din coloană 2
-        (1, 0): 4,  # Valoare săgeată între cercul 1 din coloană 2 și cercul 1 din coloană 3
-        (1, 1): 5,  # Valoare săgeată între cercul 1 din coloană 2 și cercul 2 din coloană 3
-        (0, 2): 6,  # Valoare săgeată între cercul 1 din coloană 1 și cercul 3 din coloană 2
-        (2, 0): 7,  # Valoare săgeată între cercul 2 din coloană 1 și cercul 1 din coloană 2
-        (2, 1): 8,  # Valoare săgeată între cercul 2 din coloană 1 și cercul 2 din coloană 2
-        (2, 2): 9,  # Valoare săgeată între cercul 2 din coloană 1 și cercul 3 din coloană 2
+        (i, j): 1 for i in range(3) for j in range(3)  # Valorile săgeților (1 pentru toate)
     }
 
 # Funcție pentru a crea o figură cu toate cercurile și săgețile între coloane
@@ -33,7 +26,7 @@ def create_circle_figure(circles_by_column, arrows_values):
     max_y_position = 10  # Poziția maximă de sus pe verticală
     for col_idx, circles in circles_by_column.items():
         # Calculăm offset-ul pentru alinierea cercurilor pe coloană
-        y_offset = 2 if col_idx == 2 else 0  # Coloana 3 va fi centrată mai jos
+        y_offset = 4 if col_idx == 2 else 0  # Coloana 3 va fi centrată mai jos
 
         for i, radius in enumerate(circles):
             x = col_idx * 3  # Coloanele sunt distanțate orizontal
@@ -45,36 +38,40 @@ def create_circle_figure(circles_by_column, arrows_values):
             circle_positions[col_idx].append((x, y))  # Salvăm poziția cercului
 
     # Adăugăm săgeți între cercurile din coloana 1 și 2 și între coloana 2 și 3
-    arrows = []
+    annotations = []
     for i, pos1 in enumerate(circle_positions[0]):  # Din fiecare cerc din coloana 1
         for j, pos2 in enumerate(circle_positions[1]):  # Către fiecare cerc din coloana 2
-            x0, y0 = pos2
-            x1, y1 = pos1
-            arrows.append(dict(
-                x=x0, y=y0, ax=x1, ay=y1,
+            x0, y0 = pos1
+            x1, y1 = pos2
+            # Plasăm doar un singur text la mijlocul săgeții
+            mid_x = (x0 + x1) / 2
+            mid_y = (y0 + y1) / 2
+            annotations.append(dict(
+                x=x1, y=y1, ax=x0, ay=y0,
                 xref="x", yref="y", axref="x", ayref="y",
                 showarrow=True, arrowhead=2, arrowsize=1,
-                arrowcolor="black", 
-                hovertext=f"Arrow Value: {arrows_values.get((i, j), 1)}",  # Afișează hover doar când mouse-ul e pe săgeată
-                hoverlabel=dict(bgcolor="white", font_size=13, font_color="black")
+                arrowcolor="white", 
+                hovertext=f"Arrow Value: {arrows_values.get((i, j), 1)}",  # Textul care va apărea la hover
             ))
 
     for i, pos2 in enumerate(circle_positions[1]):  # Din fiecare cerc din coloana 2
         for j, pos3 in enumerate(circle_positions[2]):  # Către fiecare cerc din coloana 3
-            x0, y0 = pos3
-            x1, y1 = pos2
-            arrows.append(dict(
-                x=x0, y=y0, ax=x1, ay=y1,
+            x0, y0 = pos2
+            x1, y1 = pos3
+            # Plasăm doar un singur text la mijlocul săgeții
+            mid_x = (x0 + x1) / 2
+            mid_y = (y0 + y1) / 2
+            annotations.append(dict(
+                x=x1, y=y1, ax=x0, ay=y0,
                 xref="x", yref="y", axref="x", ayref="y",
                 showarrow=True, arrowhead=2, arrowsize=1,
-                arrowcolor="black", 
-                hovertext=f"Arrow Value: {arrows_values.get((i, j), 1)}",  # Afișează hover doar când mouse-ul e pe săgeată
-                hoverlabel=dict(bgcolor="white", font_size=13, font_color="black")
+                arrowcolor="white", 
+                hovertext=f"Arrow Value: {arrows_values.get((i, j), 1)}",  # Textul care va apărea la hover
             ))
 
     # Adăugăm săgețile ca `annotations` la grafic
     fig.update_layout(
-        annotations=arrows,
+        annotations=annotations,
         title="Cercuri și Săgeți Interactiv",
         xaxis=dict(range=[-1, 8]),
         yaxis=dict(range=[-1, max_y_position + 1]),
@@ -82,6 +79,11 @@ def create_circle_figure(circles_by_column, arrows_values):
         title_x=0.5,
         title_y=0.95
     )
+
+    # if st.button("Show value"):
+    #     for i, pos1 in enumerate(circle_positions[0]):  # Din fiecare cerc din coloana 1
+    #         for j, pos2 in enumerate(circle_positions[1]):  # Către fiecare cerc din coloana 2
+    #             st.write(f"{arrows_values.get((i, j), random(1, 10))}")
 
     return fig
 
@@ -104,3 +106,16 @@ for col_idx in range(3):
 # Creăm și afișăm graficul cu toate cercurile și săgețile
 fig = create_circle_figure(st.session_state.circles, st.session_state.arrows)
 st.plotly_chart(fig)
+
+# -------------------- Selectbox ----------------------
+index1 = 0
+index2 = 0
+options = [f"{i}" for i in range(1, 13)]
+pos1 = st.selectbox("Beginning point", options, index=index1)
+pos2 = st.selectbox("End point", options, index=index2)
+
+
+
+
+
+st.write(f"{pos1}, {pos2}")

@@ -70,7 +70,7 @@ if st.session_state.current_step == 1:
                 st.warning("XP should be a number greater than 0.")
             else:
                 st.session_state.title = title
-                st.session_state.lesson_xp = xp
+                st.session_state.lesson_xp = int(xp)
                 st.session_state.current_step = 2
                 progress.progress(st.session_state.current_step / steps)
                 st.rerun()
@@ -120,6 +120,9 @@ if st.session_state.current_step == 2:
                     pass
         else:
             st.error("Error: Could not fetch previous lessons.")
+            
+# if st.session_state.current_step == 3:
+#     # Se
 if st.session_state.current_step == 3:
     st.header("What should be the content of this lesson?")
     prompt = st.text_input("", placeholder="Enter the topic for your lesson")
@@ -179,6 +182,7 @@ if st.session_state.current_step == 4:
             else:
                 lesson_data = {
                     "title": st.session_state.title,
+                    "xp": st.session_state.lesson_xp,
                     "content": content,
                     "previous_lesson_id": st.session_state.previous_lesson_id,
                     "experiments": "",

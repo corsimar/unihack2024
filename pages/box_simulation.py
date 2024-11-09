@@ -1,12 +1,18 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+
+
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
 solution = [4, 6]
+problem = "A company of delivery need your help. They want to send packages and set that they want to use a maximum of 500cm^2 for the surface area of this box. Can you help them build this box that has s square base such that at the end the box has the maximum volume possible for this surface area."
 
 # -------------------- Problem --------------------
 st.title("Problem")
-st.write("A company of delivery need your help. They want to send packages and set that they want to use a maximum of 500cm^2 for the surface area of this box. Can you help them build this box such that at the end the box has the maximum volume possible for this surface area.")
+st.write(problem)
 
 # Initialize session state for width and height if not already set
 if "width" not in st.session_state:
@@ -27,7 +33,7 @@ if "title" not in st.session_state:
 #     return height_slider
 
 # -------------------- A little help --------------------
-st.title("This might help you")
+st.title("Visualize the problem")
 st.write("Play with the sliders to estimate what are the answers")
 # def update_slider_width():
 #     st.session_state.slider_width = (-2*height_slider + np.sqrt(2*height_input**2 + 1000)) / 2 
@@ -35,8 +41,8 @@ st.write("Play with the sliders to estimate what are the answers")
 # def update_slider_height():
 #     st.session_state.slider_height = (250 - width_slider**2)/(2*width_slider)
 
-width_slider = st.slider("Width", 0.01, 15.00)
-height_slider = st.slider("Height", 0.01, 16.00)
+width_slider = st.slider("Width", 1.00, 20.00)
+height_slider = st.slider("Height", 1.00, 20.00)
 
 st.session_state.title= f"Lateral area is {(2 * width_slider ** 2 + 4 * width_slider * height_slider):.2f} cm^2 <br>Volume is {(width_slider * width_slider * height_slider):.2f} cm^3"
 
@@ -70,7 +76,8 @@ for face in faces:
     fig.add_trace(go.Scatter3d(
         x=x_face, y=y_face, z=z_face, 
         mode='lines+markers', marker=dict(size=2),
-        line=dict(color='blue', width=4)
+        line=dict(color='blue', width=4),
+        showlegend=False
     ))
 
 # Customize layout
@@ -107,12 +114,74 @@ if submit_button:
         st.error("Please enter valid numeric values for both height and width.")
     if st.session_state.width == solution[0] and st.session_state.height == solution[1]:
         st.success("Excellent!")
+        st.button("Next")
         #st.session_state.title = f"Volume is {(st.session_state.width * st.session_state.width * st.session_state.height):.2f} cm^3"
     else:
         st.error("Not correct :(")
 
 st.markdown("---")
 
-# -------------------- Exlanation --------------------
+# -------------------- Explanation --------------------
 st.title("Are you having troubles?")
-st.button("Ask AI")
+from openai import OpenAI
+import streamlit as st
+
+# Set a maximum height for the chat input area
+st.markdown(
+    """
+    <style>
+    .stTextInput, .stButton, .stTextArea {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .stChatMessage {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+client = OpenAI()
+
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-4o-mini"
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        if "box" in prompt.lower() and "surface area" in prompt.lower():
+            response = (
+                "It sounds like you're working on a problem involving maximizing the volume of a box with a given surface area. "
+                "Let's break it down step by step. You mentioned a box with a square base and a maximum surface area of 500 cm². "
+                "First, let's define the variables: let 'x' be the side length of the square base and 'h' be the height of the box. "
+                "The surface area of the box is given by the formula: 2x² + 4xh = 500 cm². "
+                "To maximize the volume, we need to express the volume V = x²h in terms of one variable and then find its maximum value. "
+                "Where did you encounter problems in this process?"
+            )
+        else:
+            response_placeholder = st.empty()
+            st.session_state.messages.append({"role": "system", "content": problem})
+            stream = client.chat.completions.create(
+                model=st.session_state["openai_model"],
+                messages=[
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages
+                ],
+                stream=True,
+            )
+            response = st.write_stream(stream)
+            response_placeholder.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})

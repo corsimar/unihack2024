@@ -8,6 +8,7 @@ st.title("Problem")
 st.write("The marketing HR of a company needs your help. They have a set of clients and would like to classify them in 3 categories in order to understand better their needs. Do you think you can help them?")
 
 st.title("Try to cluster the clients yourself")
+st.write("Assign each client to a class out of 3. Cluster them from left to right using, in this order, the colors: green, blue, red. Points that have the same color belong to the same cluster.")
 
 # Set random seed for reproducibility
 np.random.seed(0)
@@ -35,12 +36,12 @@ data = pd.DataFrame({
 # Function to update the color of a specific point
 def update_color(index):
     if st.session_state.colors[index] == 'gray':
-        st.session_state.colors[index] = 'red'
-    elif st.session_state.colors[index] == 'red':
-        st.session_state.colors[index] = 'blue'
-    elif st.session_state.colors[index] == 'blue':
         st.session_state.colors[index] = 'green'
     elif st.session_state.colors[index] == 'green':
+        st.session_state.colors[index] = 'blue'
+    elif st.session_state.colors[index] == 'blue':
+        st.session_state.colors[index] = 'red'
+    elif st.session_state.colors[index] == 'red':
         st.session_state.colors[index] = 'gray'
 
 # # Number of buttons per row
@@ -102,7 +103,7 @@ if cols[2].button("Next button"):
 # Display the plot
 st.plotly_chart(fig)
 
-st.title("Use KMeans to cluster")
+st.title("Verify with KMeans")
 
 # Button to show labels and cluster centers
 if st.button('Run KMeans'):
@@ -122,11 +123,13 @@ if st.button('Run KMeans'):
     # Create the Plotly scatter plot with labels and cluster centers
     fig = go.Figure()
 
+    custom_colors = ["#FF0000", "#00FF00", "#0000FF"]
+
     # Plot the data points, color them by their cluster label
     fig.add_trace(go.Scatter(
-        x=data['Age'], y=data['Salary'], mode='markers',  # Plot points as markers with text
-        marker=dict(color=labels, size=12, colorscale='Viridis'),
-        text=[f'{i}' for i in range(len(data['Age']))],  # Text for each point (index)
+        x=data['Age'], y=data['Salary'], mode='markers+text',  # Plot points as markers with text
+        marker=dict(color=[custom_colors[label] for label in labels], size=12, colorscale='Viridis'),
+        text=[f'{i+1}' for i in range(len(data['Age']))],  # Text for each point (index)
         textposition='bottom center',  # Position the text under each point
         hoverinfo='text',
         showlegend=False
@@ -137,18 +140,88 @@ if st.button('Run KMeans'):
         yaxis_title="Annual Salary",  # Label for y-axis
     )
 
-
     # Plot the cluster centers
     fig.add_trace(go.Scatter(
         x=centers[:, 0], y=centers[:, 1], mode='markers', 
-        marker=dict(symbol='circle', size=12, color='red'),
+        marker=dict(symbol='circle', size=12, color='orange'),
         name='Cluster Centers',
     ))
 
     # Display the plot with labels and cluster centers
     st.plotly_chart(fig)
     
+    colors_to_int = {"gray": -1, "red": 0, "green": 1, "blue": 0}
+    student_colors = [colors_to_int[color] for color in st.session_state.colors]
+    
+    correct_answers = np.sum(student_colors == labels)
+    st.write(f"### You clustered {correct_answers / len(labels) * 100:.2f}% of the client correctly.")
+    
 st.markdown("---")
 
+# -------------------- Explanation --------------------
 st.title("Do you want to know how KMeans works?")
-st.button("Ask AI")
+from openai import OpenAI
+import streamlit as st
+
+# Set a maximum height for the chat input area
+st.markdown(
+    """
+    <style>
+    .stTextInput, .stButton, .stTextArea {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .stChatMessage {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+problem = "The marketing HR of a company needs your help. They have a set of clients and would like to classify them in 3 categories in order to understand better their needs. Do you think you can help them?"
+what_to_solve= "Try to cluster the clients yourself"
+how_to_use="Assign each client to a class out of 3. Cluster them from left to right using, in this order, the colors: green, blue, red. Points that have the same color belong to the same cluster."
+
+
+client = OpenAI()
+
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-4o-mini"
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        if "box" in prompt.lower() and "surface area" in prompt.lower():
+            response = (
+                "Let's break it down step by step. You have a set of clients with their ages and salaries, and you need to cluster them into 3 categories. "
+                "You can assign each client to a class out of 3 by clicking the button corresponding to each point. "
+                "The colors represent different clusters: green, blue, and red. "
+                "Try to cluster the clients based on their age and salary. "
+                "If you need further assistance, let me know where you are encountering problems in this process."
+            )
+        else:
+            response_placeholder = st.empty()
+            st.session_state.messages.append({"role": "system", "content": problem+" "+what_to_solve+" "+how_to_use})
+            stream = client.chat.completions.create(
+                model=st.session_state["openai_model"],
+                messages=[
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages
+                ],
+                stream=True,
+            )
+            response = st.write_stream(stream)
+            response_placeholder.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
