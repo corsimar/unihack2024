@@ -4,9 +4,13 @@ import requests
 import utils
 import time
 
+utils.restrict_access('professor')
+
+
 st.set_page_config(page_title="Lesson Editor", page_icon="📄")
 
 BACKEND_URL = "http://localhost:5000"
+
 
 # Custom CSS to make the button the same height as the text input
 st.markdown("""
@@ -27,6 +31,8 @@ if 'lesson_xp' not in st.session_state:
     st.session_state.lesson_xp = 0
 if 'title' not in st.session_state:
     st.session_state.title = ""
+if 'previous_lesson_id' not in st.session_state:
+    st.session_state.previous_lesson_id = ""
 if 'show_editor' not in st.session_state:
     st.session_state.show_editor = False
 if 'prompt' not in st.session_state:
@@ -58,12 +64,17 @@ if st.session_state.current_step == 1:
             utils.reset_and_navigate("pages/professor_dashboard.py")
     with col2:
         if st.button("Next", key="goTo2", help="Proceed to the next step", use_container_width=True):
-            st.session_state.title = title
-            st.session_state.lesson_xp = xp
-            st.session_state.current_step = 2
-            progress.progress(st.session_state.current_step / steps)
-            st.rerun()
-        
+            if title.strip() == "":
+                st.warning("Title cannot be empty.")
+            elif xp <= 0:
+                st.warning("XP should be a number greater than 0.")
+            else:
+                st.session_state.title = title
+                st.session_state.lesson_xp = xp
+                st.session_state.current_step = 2
+                progress.progress(st.session_state.current_step / steps)
+                st.rerun()
+            
 if st.session_state.current_step == 2:
     st.header("Should this lesson succeed another lesson?")
     col1, col2 = st.columns(2)
@@ -83,14 +94,39 @@ if st.session_state.current_step == 2:
             st.session_state.current_step = 3
             progress.progress(st.session_state.current_step / steps)
             st.rerun()
-
+    
+    #add spinner
+    with st.spinner('Loading previous lessons...'):
+        response = requests.get(f"{BACKEND_URL}/get-previous-lessons")
+        if response.status_code == 200:
+            lessons = response.json()
+            for lesson in lessons:
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col1:
+                    pass
+                with col2:
+                    st.write(lesson['title'])
+                    if st.button(f"Select", key=f"select_{lesson['_id']}", use_container_width=True):
+                        st.session_state.previous_lesson_id = lesson['_id']
+                        st.session_state.show_prompt = True
+                        st.session_state.show_editor = False
+                        st.session_state.prompt = ""
+                        st.session_state.content = ""
+                        st.session_state.show_preview = False
+                        st.session_state.current_step = 3
+                        progress.progress(st.session_state.current_step / steps)
+                        st.rerun()
+            with col3:
+                pass
+        else:
+            st.error("Error: Could not fetch previous lessons.")
 if st.session_state.current_step == 3:
-    st.header("What do you want your lesson to be about?")
+    st.header("What should be the content of this lesson?")
     prompt = st.text_input("", placeholder="Enter the topic for your lesson")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("Back", key="goBackTo0", help="Cancel editing", use_container_width=True):
-            st.session_state.current_step = 1
+        if st.button("Back", key="goBackTo2", help="Cancel editing", use_container_width=True):
+            st.session_state.current_step = 2
             progress.progress(st.session_state.current_step / steps)
             st.rerun()
     with col2:
@@ -106,6 +142,7 @@ if st.session_state.current_step == 3:
                 with st.spinner('Generating lesson...'):
                     # Make a request to the backend to generate the lesson
                     response = requests.get(f"{BACKEND_URL}/generate-lesson", params={"topic": prompt})
+                    
                     if response.status_code == 200:
                         st.session_state.content = response.json()
                         st.session_state.current_step = 4
@@ -143,7 +180,7 @@ if st.session_state.current_step == 4:
                 lesson_data = {
                     "title": st.session_state.title,
                     "content": content,
-                    "previous_lesson_id": "",
+                    "previous_lesson_id": st.session_state.previous_lesson_id,
                     "experiments": "",
                 }
                 response = requests.post(f"{BACKEND_URL}/add-lesson", json=lesson_data)

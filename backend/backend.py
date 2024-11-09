@@ -28,6 +28,17 @@ def addLesson():
     lessons_collection.insert_one(lesson)
     return jsonify(message="Lesson added successfully"), 200
 
+from bson import ObjectId
+
+@app.route('/remove-lesson/<lesson_id>', methods=['DELETE'])
+def removeLesson(lesson_id):
+    result = lessons_collection.delete_one({'_id': ObjectId(lesson_id)})
+    if result.deleted_count == 1:
+        return jsonify(message="Lesson removed successfully"), 200
+    else:
+        return jsonify(message="Lesson not found"), 404
+
+
 @app.route('/get-all-lessons', methods=['GET'])
 def getAllLessons():
     lessons = list(lessons_collection.find())
@@ -41,9 +52,11 @@ def getPreviousLessons():
     lessons = list(lessons_collection.find({}))
     lessons = [convert_objectid(lesson) for lesson in lessons]
     #get only the id and topic of the lesson
-    lessons = [{'_id': lesson['_id'], 'topic': lesson['topic']} for lesson in lessons]
-    
+    lessons = [{'_id': lesson['_id'], 'title': lesson['title']} for lesson in lessons]
+
     return jsonify(lessons), 200
+
+
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)

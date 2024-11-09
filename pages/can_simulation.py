@@ -34,7 +34,6 @@ def update_height():
 def update_radius():
     st.session_state.radius_visualise = radius_slider
     st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
-
     
 radius_slider = st.slider("Radius", 1.0, 20.0, step=0.01, on_change=update_radius)
 height_slider = st.slider("Height", 1.0, 20.0, step=0.01, on_change=update_height)
