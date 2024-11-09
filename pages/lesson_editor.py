@@ -116,8 +116,8 @@ if st.session_state.current_step == 2:
                         st.session_state.current_step = 3
                         progress.progress(st.session_state.current_step / steps)
                         st.rerun()
-            with col3:
-                pass
+                with col3:
+                    pass
         else:
             st.error("Error: Could not fetch previous lessons.")
 if st.session_state.current_step == 3:

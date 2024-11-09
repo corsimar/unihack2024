@@ -1,5 +1,7 @@
 import streamlit as st
 import requests
+import hashlib
+import time
 
 BACKEND_URL = "http://localhost:5000"
 
@@ -10,7 +12,7 @@ def convert_objectid(doc):
 
 def reset_state():
     for key in list(st.session_state.keys()):
-        if key != 'role':
+        if key != 'role' and key != 'user_id':
             del st.session_state[key]
     
 def reset_and_navigate(page):
@@ -45,3 +47,73 @@ def restrict_access(allowed_role):
     if st.session_state.role != allowed_role:
         st.error("You are not authorized to access this page.")
         st.stop()
+
+def complete_lesson(lesson_id):
+    entry = {
+        'lesson_id': lesson_id,
+        'user_id': st.session_state.user_id
+    }
+    response = requests.post(f"{BACKEND_URL}/complete-lesson", json=entry)
+    if response.status_code == 200:
+        st.success("Lesson completed successfully.")
+    else:
+        st.error("Failed to complete lesson.")
+        
+def login(email, password):
+    entry = {
+        'email': email,
+        'password': hash_password(password)
+    }
+    response = requests.post(f"{BACKEND_URL}/login", json=entry)
+    if response.status_code == 200:
+        user = response.json()
+        st.session_state.user_id = user['_id']
+        st.session_state.role = user['role']
+        st.success("Login successful.")
+        st.write(f"Welcome, {user['name']}!")
+        return 1
+    elif response.status_code == 404:
+        st.error("User not existing.")
+        return 0
+    elif response.status_code == 401:
+        st.error("Incorrect password.")
+        return 0
+    
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def login_redirecting():
+    if st.session_state.role in ['professor', 'student']:
+        st.write("You are already logged in.")
+        redirecting = st.empty()
+        for i in range(3, 0, -1):
+            redirecting.write(f"Redirecting in {i} seconds...")
+            time.sleep(1)
+        if st.session_state.role == 'professor':
+            reset_and_navigate("pages/professor_dashboard.py")
+        elif st.session_state.role == 'student':
+            reset_and_navigate("pages/student_dashboard.py")
+    else:
+        st.stop()
+        
+def logout():
+    for key in list(st.session_state.keys()):
+            del st.session_state[key]
+    st.success("Logout successful.")
+    st.write("You have been logged out.")
+    reset_and_navigate("pages/login.py")
+    
+def user_xp(ammount):
+    user_id = st.session_state.user_id
+    response = requests.get(f"{BACKEND_URL}/get-user/{user_id}")
+    if response.status_code == 200:
+        user = response.json()
+        user['xp'] += ammount
+        response = requests.post(f"{BACKEND_URL}/xp", json=user)
+        if response.status_code == 200:
+            st.success("XP added successfully.")
+            return user['xp']
+        else:
+            st.error("Failed to add XP.")
+    else:
+        st.error("Failed to add XP.")

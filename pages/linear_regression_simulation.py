@@ -35,5 +35,4 @@ st.pyplot(fig)
 
 lr_degree = st.number_input("Degree of linear regression", min_value=1, max_value=8)
 
-
 st.title("Test the model")

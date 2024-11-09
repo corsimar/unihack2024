@@ -1,15 +1,15 @@
 import streamlit as st
 import utils
-import time
-
 if "role" not in st.session_state:
     st.session_state.role = ""
-elif st.session_state.role == "professor":
-    utils.login_redirecting("professor")
-    # utils.reset_and_navigate("pages/professor_dashboard.py")
-elif st.session_state.role == "student":
-    utils.login_redirecting("student")
-    # utils.reset_and_navigate("pages/student_dashboard.py")
+if "user_id" not in st.session_state:
+    st.session_state.user_id = ""
+# elif st.session_state.role == "professor":
+#     utils.login_redirecting("professor")
+# elif st.session_state.role == "student":
+#     utils.login_redirecting("student")
+elif st.session_state.role == "professor" or st.session_state.role == "student":
+    utils.login_redirecting()
 # Set page title
 st.title("Welcome to RevoLearn!")
 
@@ -21,12 +21,17 @@ with st.form("login_form"):
 
 # Handle form submission
 if submit_button:
-    if username == "prof@test.com" and password == "password":
-        st.session_state.role = "professor"
-        utils.reset_and_navigate("pages/professor_dashboard.py")
-    elif username == "stud@test.com" and password == "password":
-        st.session_state.role = "student"
-        utils.reset_and_navigate("pages/student_dashboard.py")    
+    # if username == "prof@test.com" and password == "password":
+    #     st.session_state.role = "professor"
+    #     utils.reset_and_navigate("pages/professor_dashboard.py")
+    # elif username == "stud@test.com" and password == "password":
+    #     st.session_state.role = "student"
+    #     utils.reset_and_navigate("pages/student_dashboard.py")    
 
-    else:
-        st.error("Invalid username or password")
+    # else:
+    #     st.error("Invalid username or password")
+    if utils.login(username, password) == 1:
+        if st.session_state.role == "professor":
+            utils.reset_and_navigate("pages/professor_dashboard.py")
+        elif st.session_state.role == "student":
+            utils.reset_and_navigate("pages/student_dashboard.py")

@@ -15,16 +15,44 @@ with stylable_container(
     # Create a button at the top right
     col1, col2, col3 = st.columns([6.5, 2, 1.5])
     # Create a top bar with the name RevoLearn on the left and profile on the right
+    with col1:
+        st.markdown('<h2 class="header-text">Your Lessons</h2>', unsafe_allow_html=True)
     with col2:
-        if st.button("Create Lesson"):
-            utils.reset_and_navigate("pages/lesson_editor.py")
+        with stylable_container(
+            key="create_lesson",
+            css_styles=""" 
+            button {
+                margin-top: 20px;
+                color: black;
+                background-color: white;
+            }
+            button:hover {
+                border: 1px transparent black;
+            }
+            """,
+        ):
+            if st.button("Create Lesson"):
+                utils.reset_and_navigate("pages/lesson_editor.py")
     with col3:
-        if st.button("Logout"):
-            st.session_state.role = ""
-            utils.reset_and_navigate("pages/login.py")
+        with stylable_container(
+            key="logout",
+            css_styles=""" 
+            button {
+                margin-top: 20px;
+                color: white;
+                background-color: red;
+            }
+            button:hover {
+                border: 1px transparent black;
+            }
+            """,
+        ):
+            if st.button("Logout"):
+                utils.logout()
 
     if(st.session_state.get("lessons") is None):
-        st.session_state["lessons"] = utils.get_lessons_dashboard()
+        with st.spinner('Loading all lessons...'):
+            st.session_state["lessons"] = utils.get_lessons_dashboard()
 
     # Display the lessons with borders, icons, and progress
     st.markdown("""
@@ -34,7 +62,7 @@ with stylable_container(
         }
         .lesson {
             font-size: 18px;
-            border-radius: 5px;
+            margin0: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -61,10 +89,29 @@ with stylable_container(
         </style>
         """, unsafe_allow_html=True)
 
-    st.markdown('<h2 class="header-text">Your Lessons</h2>', unsafe_allow_html=True)
+    if len(st.session_state["lessons"]) == 0:
+        with stylable_container(
+            css_styles="""
+            img {
+                 display: block;
+  margin-right: auto;
+    margin-left: 80%;
+    margin-top: 10%;
+            filter: brightness(0) invert(0.6);}
+            .noLessons {
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                color: gray;
+            }
+            """,
+            key="no_lessons"
+        ):
+            st.image("https://cdn-icons-png.freepik.com/256/1466/1466623.png?semt=ais_hybrid")
+            st.write('<div class="noLessons">You have no lessons yet. Click the "Create Lesson" button to get started.</div>', unsafe_allow_html=True)
     for lesson in st.session_state["lessons"]:
         with stylable_container(
-            key="green_button",
+            key="lesson_button",
             css_styles="""
                 button {
                     color: white;
