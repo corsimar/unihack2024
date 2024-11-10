@@ -4,8 +4,27 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
+st.set_page_config(page_title="Kmeans Simulation", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 st.title("Problem")
 st.write("The marketing HR of a company needs your help. They have a set of clients and would like to classify them in 3 categories in order to understand better their needs. Do you think you can help them?")
+st.write("You have to get at least 60% of the customers in right in order to complete.")
 
 st.title("Try to cluster the clients yourself")
 st.write("Assign each client to a class out of 3. Cluster them from left to right using, in this order, the colors: green, blue, red. Points that have the same color belong to the same cluster.")
@@ -154,32 +173,83 @@ if st.button('Run KMeans'):
     student_colors = [colors_to_int[color] for color in st.session_state.colors]
     
     correct_answers = np.sum(student_colors == labels)
+    accuracy = correct_answers / len(labels) * 100
     st.write(f"### You clustered {correct_answers / len(labels) * 100:.2f}% of the client correctly.")
+    
+    if accuracy > 60:
+        pass
     
 st.markdown("---")
 
 # -------------------- Explanation --------------------
 st.title("Do you want to know how KMeans works?")
 from openai import OpenAI
-import streamlit as st
+# import streamlit as st
 
-# Set a maximum height for the chat input area
-st.markdown(
-    """
-    <style>
-    .stTextInput, .stButton, .stTextArea {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    .stChatMessage {
-        max-height: 500px;
-        overflow-y: auto;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# # Set a maximum height for the chat input area
+# st.markdown(
+#     """
+#     <style>
+#     .stTextInput, .stButton, .stTextArea {
+#         max-height: 300px;
+#         overflow-y: auto;
+#     }
+#     .stChatMessage {
+#         max-height: 500px;
+#         overflow-y: auto;
+#     }
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
 
+# problem = "The marketing HR of a company needs your help. They have a set of clients and would like to classify them in 3 categories in order to understand better their needs. Do you think you can help them?"
+# what_to_solve= "Try to cluster the clients yourself"
+# how_to_use="Assign each client to a class out of 3. Cluster them from left to right using, in this order, the colors: green, blue, red. Points that have the same color belong to the same cluster."
+
+
+# client = OpenAI()
+
+# if "openai_model" not in st.session_state:
+#     st.session_state["openai_model"] = "gpt-4o-mini"
+
+# if "messages" not in st.session_state:
+#     st.session_state.messages = []
+
+# for message in st.session_state.messages:
+#     with st.chat_message(message["role"]):
+#         st.markdown(message["content"])
+
+# if prompt := st.chat_input("What is up?"):
+#     st.session_state.messages.append({"role": "user", "content": prompt})
+#     with st.chat_message("user"):
+#         st.markdown(prompt)
+
+#     with st.chat_message("assistant"):
+#         if "box" in prompt.lower() and "surface area" in prompt.lower():
+#             response = (
+#                 "Let's break it down step by step. You have a set of clients with their ages and salaries, and you need to cluster them into 3 categories. "
+#                 "You can assign each client to a class out of 3 by clicking the button corresponding to each point. "
+#                 "The colors represent different clusters: green, blue, and red. "
+#                 "Try to cluster the clients based on their age and salary. "
+#                 "If you need further assistance, let me know where you are encountering problems in this process."
+#             )
+#         else:
+#             response_placeholder = st.empty()
+#             st.session_state.messages.append({"role": "system", "content": problem+" "+what_to_solve+" "+how_to_use})
+#             stream = client.chat.completions.create(
+#                 model=st.session_state["openai_model"],
+#                 messages=[
+#                     {"role": m["role"], "content": m["content"]}
+#                     for m in st.session_state.messages
+#                 ],
+#                 stream=True,
+#             )
+#             response = st.write_stream(stream)
+#             response_placeholder.markdown(response)
+#     st.session_state.messages.append({"role": "assistant", "content": response})
+    
+    
 problem = "The marketing HR of a company needs your help. They have a set of clients and would like to classify them in 3 categories in order to understand better their needs. Do you think you can help them?"
 what_to_solve= "Try to cluster the clients yourself"
 how_to_use="Assign each client to a class out of 3. Cluster them from left to right using, in this order, the colors: green, blue, red. Points that have the same color belong to the same cluster."

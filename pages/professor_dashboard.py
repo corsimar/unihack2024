@@ -2,7 +2,27 @@ import streamlit as st
 import utils
 from streamlit_extras.stylable_container import stylable_container 
 
-#utils.restrict_access('professor')
+utils.restrict_access('professor')
+
+
+st.set_page_config(page_title="Professor Dashboard", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 with stylable_container(
     key="body",
@@ -13,7 +33,7 @@ with stylable_container(
     """
     ):
     # Create a button at the top right
-    col1, col2, col3 = st.columns([6.5, 2, 1.5])
+    col1, col2, col3 = st.columns([7.5, 1, 1.5])
     # Create a top bar with the name RevoLearn on the left and profile on the right
     with col1:
         st.markdown('<h2 class="header-text">Your Lessons</h2>', unsafe_allow_html=True)
@@ -135,7 +155,7 @@ with stylable_container(
             def preview_dialog(content):
                 st.write(content)
                 
-            buttoncol1, buttoncol2 = st.columns([7.4,2.6])
+            buttoncol1, buttoncol2 = st.columns([9,1.5])
             with buttoncol1:
                 st.button(lesson['title'], use_container_width=True)
             with buttoncol2:

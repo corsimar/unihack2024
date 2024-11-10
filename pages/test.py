@@ -1,44 +1,59 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+import openai
+import sounddevice as sd
+import numpy as np
+import io
+from pydub import AudioSegment
 
-# Function to generate synthetic data
-def generate_data(n_samples):
-    np.random.seed(42)
-    age = np.random.randint(0, 19, n_samples)
-    gender = np.random.choice([0, 1], n_samples)
-    parent_height_avg = np.random.normal(170, 10, n_samples)
-    nutrition_score = np.random.uniform(0.5, 1, n_samples)
-    physical_activity_level = np.random.uniform(0, 1, n_samples)
+# Set your OpenAI API key
 
-    data = pd.DataFrame({
-        "Age": age,
-        "Gender": gender,
-        "Parent_Height_Avg": parent_height_avg,
-        "Nutrition_Score": nutrition_score,
-        "Physical_Activity_Level": physical_activity_level
-    })
+def record_audio(duration=5, fs=44100):
+    """Record audio for a specified duration in seconds."""
+    st.write("Recording...")
+    audio = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
+    sd.wait()  # Wait until the recording is finished
+    audio = audio.flatten()
+    st.write("Recording finished.")
+    return audio, fs
 
-    # Gender-specific height adjustment (use np.where for element-wise comparison)
-    gender_height_adjustment = np.where(gender == 0, 7, 6)  # 7 for male, 6 for female
-
-    # Generate height using a formula with some weights and noise
-    data["Height"] = (
-        50 + 
-        5 * age + 
-        gender_height_adjustment +  
-        0.5 * parent_height_avg + 
-        10 * nutrition_score + 
-        3 * physical_activity_level + 
-        np.random.normal(0, 5, n_samples)  # Adding some noise
+def audio_to_wav(audio, fs):
+    """Convert numpy array audio to WAV format."""
+    audio_segment = AudioSegment(
+        data=audio.tobytes(),
+        sample_width=audio.dtype.itemsize,
+        frame_rate=fs,
+        channels=1
     )
+    wav_io = io.BytesIO()
+    audio_segment.export(wav_io, format="wav")
+    return wav_io
 
-    return data
+def transcribe_audio(audio_data):
+    """Send audio to OpenAI Whisper for transcription."""
+    # Seek to the start of the BytesIO object before sending to OpenAI API
+    audio_data.seek(0)
+    
+    response = openai.Audio.transcriptions.create(
+        model="whisper-1", 
+        file=audio_data,
+        response_format="text"  # Optional: specify text-only response
+    )
+    transcription = response["text"]
+    return transcription
 
-# Streamlit app setup
-st.title("Synthetic Height Prediction Dataset")
+# Streamlit App
+st.title("Live Transcription with Whisper")
 
-# Generate and display the data
-data = generate_data(100)
-st.write("Generated Synthetic Data", data)
+st.write("Click the button to start recording and transcribing.")
+
+if st.button("Start Recording"):
+    # Record 5 seconds of audio
+    duration = 5  # seconds
+    audio, fs = record_audio(duration=duration)
+    audio_data = audio_to_wav(audio, fs)
+    
+    # Transcribe audio
+    transcription = transcribe_audio(audio_data)
+    
+    st.write("Transcription:")
+    st.write(transcription)

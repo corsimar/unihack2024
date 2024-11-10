@@ -104,7 +104,7 @@ def completeExperiment():
     entry = request.json
     #check if the student has completed the experiment before
     if stud_completed_exp.find_one({'user_id': entry['user_id'], 'experiment_id': entry['experiment_id']}):
-        return jsonify(message="Experiment already completed"), 400
+        return jsonify(message="Experiment already completed. You won't receive any more experience points for this one."), 400
     
     stud_completed_exp.insert_one(entry)
     return jsonify(message="Experiment completed successfully"), 200

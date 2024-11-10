@@ -3,6 +3,26 @@ import numpy as np
 import plotly.graph_objects as go
 import utils
 
+
+
+st.set_page_config(page_title="Can Simulation", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 # Initialize session state for cylinder parameters
 if "radius_visualise" not in st.session_state:
     st.session_state.radius_visualise = 1.0

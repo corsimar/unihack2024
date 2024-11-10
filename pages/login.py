@@ -1,5 +1,24 @@
 import streamlit as st
 import utils
+
+st.set_page_config(initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 if "role" not in st.session_state:
     st.session_state.role = ""
 if "user_id" not in st.session_state:

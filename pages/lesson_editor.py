@@ -7,7 +7,24 @@ import time
 utils.restrict_access('professor')
 
 
-st.set_page_config(page_title="Lesson Editor", page_icon="📄")
+st.set_page_config(page_title="Lesson Editor", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 BACKEND_URL = "http://localhost:5000"
 
@@ -124,6 +141,26 @@ if st.session_state.current_step == 2:
             st.error("Error: Could not fetch previous lessons.")
             
 if st.session_state.current_step == 3:
+    st.header("Should this lesson include an experiment?")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Back", key="goBackTo2", help="Go to previous step", use_container_width=True):
+            st.session_state.current_step = 2
+            progress.progress(st.session_state.current_step / steps)
+            st.rerun()
+        
+    with col2:
+        if st.button("No, this lesson doesn't include an experiment", key="no", use_container_width=True):
+            st.session_state.show_prompt = True
+            st.session_state.show_editor = False
+            st.session_state.prompt = ""
+            st.session_state.content = ""
+            st.session_state.show_preview = False
+            st.session_state.current_step = 4
+            progress.progress(st.session_state.current_step / steps)
+            st.rerun()
+    
+    
     # Show the experiments with select option
     with st.spinner('Loading experiments...'):
         response = requests.get(f"{BACKEND_URL}/get-experiments")
@@ -185,7 +222,7 @@ if st.session_state.current_step == 4:
 if st.session_state.current_step == 5:
     
     st.header("Edit your lesson")
-    content = st_quill(value=st.session_state.get("content", ""))
+    content = st_quill(value=st.session_state.content)
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("Back", key="goBackTo4", help="Cancel editing", use_container_width=True):

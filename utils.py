@@ -84,7 +84,7 @@ def complete_experiment(experiment_id):
     if response.status_code == 200:
         st.success("Experiment completed successfully.")
     elif response.status_code == 400:
-        st.warning("You have already completed this experiment.")
+        st.warning("You have already completed this experiment. You won't get any XP for completing it again.")
 
 def login(email, password):
     entry = {

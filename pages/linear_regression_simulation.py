@@ -7,9 +7,13 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from openai import OpenAI
+import utils
+
+utils.restrict_access("student")
+
 
 st.title("Problem")
-st.write("A company wants your help. It has some data collected and wants to predict new data based on the data they are giving you. If you can get a coefficient of R^2 higher than 98% you are going to get a job at this company.")
+st.write("A company wants your help. It has some data collected and wants to predict new data based on the data they are giving you. If you can get a coefficient of R^2 higher than 98% you are going to get a job at this company. To complete this experiment you have to get at least a value of 0.6 for R^2 for testing data.")
 
 st.title("Train the model")
 st.write("In order for your model to make predictions you have to train with some data provided by the company.")
@@ -142,6 +146,9 @@ if st.button("Test the model"):
     st.metric(label="R² for testing", value=f"{actual_testing_r2}")
     st.metric(label="Mean Absolute Error (MAE)", value=f"{mean_absolute_error(data['y'], y_pred):.4f}")
     st.metric(label="Mean Squared Error (MSE)", value=f"{mean_squared_error(data['y'], y_pred):.4f}")
+    
+    if actual_testing_r2 > 0.6:
+        pass
     
 st.markdown("---")
 st.title("How can I improve my linear regression model?")

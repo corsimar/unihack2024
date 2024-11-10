@@ -7,6 +7,24 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
+st.set_page_config(page_title="Box Simulation", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
+st.markdown(
+    """
+<style>
+    [data-testid="stBaseButton-headerNoPadding"] {
+        display: none
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+hide_streamlit_style = """
+<style>
+.stAppHeader {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 solution = [4, 6]
 problem = "A company of delivery need your help. They want to send packages and set that they want to use a maximum of 500cm^2 for the surface area of this box. Can you help them build this box that has s square base such that at the end the box has the maximum volume possible for this surface area."
 
@@ -152,6 +170,7 @@ if "openai_model" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Display existing messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -161,27 +180,32 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    if "box" in prompt.lower() and "surface area" in prompt.lower():
+        response = (
+            "It sounds like you're working on a problem involving maximizing the volume of a box with a given surface area. "
+            "Let's break it down step by step. You mentioned a box with a square base and a maximum surface area of 500 cm². "
+            "First, let's define the variables: let 'x' be the side length of the square base and 'h' be the height of the box. "
+            "The surface area of the box is given by the formula: 2x² + 4xh = 500 cm². "
+            "To maximize the volume, we need to express the volume V = x²h in terms of one variable and then find its maximum value. "
+            "Where did you encounter problems in this process?"
+        )
+    else:
+        response_placeholder = st.empty()
+        st.session_state.messages.append({"role": "system", "content": problem})
+        stream = client.chat.completions.create(
+            model=st.session_state["openai_model"],
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            stream=True,
+        )
+        response = st.write_stream(stream)
+        #response_placeholder.markdown(response)
+    
+    # Display the assistant's response
     with st.chat_message("assistant"):
-        if "box" in prompt.lower() and "surface area" in prompt.lower():
-            response = (
-                "It sounds like you're working on a problem involving maximizing the volume of a box with a given surface area. "
-                "Let's break it down step by step. You mentioned a box with a square base and a maximum surface area of 500 cm². "
-                "First, let's define the variables: let 'x' be the side length of the square base and 'h' be the height of the box. "
-                "The surface area of the box is given by the formula: 2x² + 4xh = 500 cm². "
-                "To maximize the volume, we need to express the volume V = x²h in terms of one variable and then find its maximum value. "
-                "Where did you encounter problems in this process?"
-            )
-        else:
-            response_placeholder = st.empty()
-            st.session_state.messages.append({"role": "system", "content": problem})
-            stream = client.chat.completions.create(
-                model=st.session_state["openai_model"],
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                ],
-                stream=True,
-            )
-            response = st.write_stream(stream)
-            response_placeholder.markdown(response)
+        st.markdown(response)
+
+    # Append the assistant's response to the session state messages
     st.session_state.messages.append({"role": "assistant", "content": response})
