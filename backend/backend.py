@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 #from flask_restplus import Api, Resource
 
 from openai_setup import genLesson 
-from database import db, client, lessons_collection, stud_completed_less, users, experiments
+from database import db, client, lessons_collection, stud_completed_less, stud_completed_exp, users, experiments
 from utils import convert_objectid
 from bson import ObjectId
 
@@ -99,6 +99,16 @@ def completeLesson():
     
     return jsonify(message="Lesson completed successfully"), 200
 
+@app.route('/complete-experiment', methods=['POST'])
+def completeExperiment():
+    entry = request.json
+    #check if the student has completed the experiment before
+    if stud_completed_exp.find_one({'user_id': entry['user_id'], 'experiment_id': entry['experiment_id']}):
+        return jsonify(message="Experiment already completed"), 400
+    
+    stud_completed_exp.insert_one(entry)
+    return jsonify(message="Experiment completed successfully"), 200
+
 @app.route('/get-completed-lessons/<student_id>', methods=['GET'])
 def getCompletedLessons(student_id):
     completed_lessons = list(stud_completed_less.find({'user_id': student_id}))
@@ -132,13 +142,21 @@ def xp(user_id):
     
     
     # return jsonify(user['xp']), 200
-    #get user xp from completed lessons 
+    #get user xp from completed lessons and completed experiments
     completed_lessons = list(stud_completed_less.find({'user_id': user_id}))
     completed_lessons = [convert_objectid(lesson) for lesson in completed_lessons]
+    completed_experiments = list(stud_completed_exp.find({'user_id': user_id}))
+    completed_experiments = [convert_objectid(experiment) for experiment in completed_experiments]
     xp = 0
     for lesson in completed_lessons:
         lesson = lessons_collection.find_one({'_id': ObjectId(lesson['lesson_id'])})
         xp += int(lesson['xp'])
+    for experiment in completed_experiments:
+        experiment = experiments.find_one({'_id': ObjectId(experiment['experiment_id'])})
+        xp += int(experiment['xp'])
+    
+
+    
     return jsonify(xp), 200
 
 # Experiment endpoints

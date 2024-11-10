@@ -1,5 +1,10 @@
 import streamlit as st
+import numpy as np
+import pandas as pd
+import seaborn as sns
 import plotly.graph_objects as go
+import tensorflow as tf
+from tensorflow import keras
 
 # Inițializăm starea aplicației pentru cercuri în fiecare coloană
 if 'circles' not in st.session_state:
@@ -17,6 +22,51 @@ if 'arrows' not in st.session_state:
     st.session_state.arrows = {
         (i, j): 1 for i in range(3) for j in range(3)  # Valorile săgeților (1 pentru toate)
     }
+
+st.title("Problem")
+st.write("There is a dataset with data about people's heights. There are the age, gender, parent height average, nutrition score and physical activity level values that you can train the model with. At the end you have to classify people in 3 classes using these values:")
+st.markdown("- **class 0**: people with height under 170 cm")
+st.markdown("- **class 1**: people with height between 170-185 cm")
+st.markdown("- **class 2**: people with height above 185 cm")
+
+def generate_data(n_samples):
+    np.random.seed(42)
+    age = np.random.randint(0, 19, n_samples)
+    gender = np.random.choice([0, 1], n_samples)
+    parent_height_avg = np.random.normal(170, 10, n_samples)
+    nutrition_score = np.random.uniform(0.5, 1, n_samples)
+    physical_activity_level = np.random.uniform(0, 1, n_samples)
+
+    data = pd.DataFrame({
+        "Age": age,
+        "Gender": gender,
+        "Parent_Height_Avg": parent_height_avg,
+        "Nutrition_Score": nutrition_score,
+        "Physical_Activity_Level": physical_activity_level
+    })
+
+    # Gender-specific height adjustment (use np.where for element-wise comparison)
+    gender_height_adjustment = np.where(gender == 0, 7, 6)  # 7 for male, 6 for female
+
+    # Generate height using a formula with some weights and noise
+    data["Height"] = (
+        50 + 
+        5 * age + 
+        gender_height_adjustment +  
+        0.5 * parent_height_avg + 
+        10 * nutrition_score + 
+        3 * physical_activity_level + 
+        np.random.normal(0, 5, n_samples)  # Adding some noise
+    )
+
+    return data
+
+data = generate_data(100)
+st.title("Learn more about the data")
+if st.button("Explore data"):
+    st.write(data)
+    pairplot = sns.pairplot(data)
+    st.pyplot(pairplot)
 
 # Funcție pentru a crea o figură cu toate cercurile și săgețile între coloane
 def create_circle_figure(circles_by_column, arrows_values):
@@ -47,13 +97,20 @@ def create_circle_figure(circles_by_column, arrows_values):
                 ))
                 circle_positions[col_idx].append((x, y))  # Salvăm poziția cercului
         else:
+            class_texts = ["< 170 cm", "170-185 cm", "> 185 cm"]
             for i, radius in enumerate(circles):
                 x = col_idx * 3  # Coloanele sunt distanțate orizontal
                 y = max_y_position - i * 2 - y_offset  # Coloana 3 are un offset mai jos
-                fig.add_trace(go.Scatter(
-                    x=[x], y=[y], mode='markers', marker=dict(size=30, color=colors[col_idx]),
-                    name=f"Circle {col_idx + 1}-{i + 1}", hoverinfo='skip'  # Dezactivăm hover pe cercuri
-                ))
+                if col_idx == 2:
+                    fig.add_trace(go.Scatter(
+                        x=[x], y=[y], mode='markers+text', marker=dict(size=30, color=colors[col_idx]),
+                        name=f"Circle {col_idx + 1}-{i + 1}", text=class_texts[i], textposition="middle right", hoverinfo='skip'  # Dezactivăm hover pe cercuri
+                    ))
+                else:
+                    fig.add_trace(go.Scatter(
+                        x=[x], y=[y], mode='markers+text', marker=dict(size=30, color=colors[col_idx]),
+                        name=f"Circle {col_idx + 1}-{i + 1}", hoverinfo='skip'  # Dezactivăm hover pe cercuri
+                    ))
                 circle_positions[col_idx].append((x, y))  # Salvăm poziția cercului
 
     # Adăugăm săgeți între cercurile din coloana 1 și 2 și între coloana 2 și 3
@@ -98,6 +155,8 @@ def create_circle_figure(circles_by_column, arrows_values):
 
     return fig
 
+st.title("Train the model")
+
 # Interfața cu butoane pentru fiecare coloană
 cols = st.columns(3)
 for col_idx in range(3):
@@ -105,12 +164,12 @@ for col_idx in range(3):
         with cols[col_idx]:
             if col_idx < 2:
                 if len(st.session_state.circles[col_idx]) < 5:
-                    if st.button(f"Add neuron {col_idx + 1}"):
+                    if st.button(f"Add neuron"):
                         st.session_state.circles[col_idx].append(0.5)  # Adaugă un cerc cu rază 0.5 în coloană
                         st.rerun()
                 
                 if len(st.session_state.circles[col_idx]) > 1:
-                    if st.button(f"Remove neuron {col_idx + 1}"):
+                    if st.button(f"Remove neuron"):
                         st.session_state.circles[col_idx].pop()  # Elimină ultimul cerc din coloană
                         st.rerun()
                         
@@ -187,4 +246,9 @@ ns_checkbox = st.checkbox(names[3], on_change=lambda: select_input("ns"))
 pal_checkbox = st.checkbox(names[4], on_change=lambda: select_input("pal"))
 
 if st.button("Train the model"):
-    pass
+    input_len = np.array(len(st.session_state.circles[0]))
+    second_len = np.array(len(st.session_state.circles[1]))
+    
+    # model = keras.Sequential([
+    #     keras.layers.Dense(second_len, input_shape=(input_len,), activation)
+    # ])

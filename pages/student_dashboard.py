@@ -257,16 +257,19 @@ with st.spinner("Loading..."):
                 
                 for lesson in lessons:
                     if lesson['completed']:
-                        st.markdown(f"""<div class="lesson completed">{lesson["title"]}</div>""", unsafe_allow_html=True)
+                        if lesson["experiments"] is None:
+                            st.markdown(f"""<div class="lesson completed">{lesson["title"]}</div>""", unsafe_allow_html=True)
                         if lesson["experiments"]:
-                            # add a button to view the experiment
-                            if st.button(f"Experiment for {lesson['title']}", use_container_width=True):
-                                experiment = utils.get_experiment(lesson["experiments"])
-                                st.session_state.experiment_id = experiment["_id"]
-                                st.switch_page(experiment['page_link'])
-                                # st.session_state.experiment_name = lesson["title"]
-                                # st.session_state.experiment_content = lesson["experiments"]
-                                # st.switch_page("pages/experiment_viewer.py")
+                            # add two columns, one for the lesson and one for the experiment
+                            col1, col2 = st.columns([8, 2])
+                            with col1:
+                                st.markdown(f"""<div class="lesson completed">{lesson["title"]} </div>""", unsafe_allow_html=True)
+                            with col2:
+                                if st.button("Experiment", use_container_width=True, key=f"experiment_{lesson['experiments']}_{lesson['_id']}"):
+                                    experiment = utils.get_experiment(lesson["experiments"])
+                                    st.session_state.experiment_id = experiment["_id"]
+                                    st.switch_page(experiment['page_link'])
+                            
                     elif lesson['_id'] in locked_lessons:
                         st.markdown(f"""<div class="lesson locked">{lesson["title"]}</div>""", unsafe_allow_html=True)
                     else:

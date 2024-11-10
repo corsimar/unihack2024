@@ -75,6 +75,17 @@ def get_lessons_student():
         lesson_student = response.json()
     return lesson_student
 
+def complete_experiment(experiment_id):
+    entry = {
+        'experiment_id': experiment_id,
+        'user_id': st.session_state.user_id
+    }
+    response = requests.post(f"{BACKEND_URL}/complete-experiment", json=entry)
+    if response.status_code == 200:
+        st.success("Experiment completed successfully.")
+    elif response.status_code == 400:
+        st.warning("You have already completed this experiment.")
+
 def login(email, password):
     entry = {
         'email': email,

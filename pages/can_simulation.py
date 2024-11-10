@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+import utils
 
 # Initialize session state for cylinder parameters
 if "radius_visualise" not in st.session_state:
@@ -100,7 +101,8 @@ if st.button("Submit"):
     
     if radius == solution[0] and height == solution[1]:
         st.success("Well done! You found the optimum values")
-        st.button("Next")
+        st.balloons()
+        utils.complete_experiment(st.session_state.experiment_id)
     else:
         st.error("These are not the optimum values")
 
@@ -109,6 +111,9 @@ if height_slider != st.session_state.height_visualise:
     
 if radius_slider != st.session_state.radius_visualise:
     update_height()
+    
+if st.button("Back to dashboard"):
+            utils.reset_and_navigate('pages/student_dashboard.py')
     
 st.markdown("---")
 
