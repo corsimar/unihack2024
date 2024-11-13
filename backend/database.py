@@ -1,8 +1,9 @@
 from pymongo.mongo_client import MongoClient
+from dotenv import load_dotenv
+import os
 
-# Replace <username> with your actual MongoDB Atlas username
-uri = "mongodb+srv://RevoLearn:UMHsBiClmSxemj0I@revolearn.fjzbs.mongodb.net/?retryWrites=true&w=majority&appName=RevoLearn"
-
+load_dotenv()
+uri = os.getenv('MONGODB_URI')
     
 client = MongoClient(uri)
 db = client['RevoLearn']

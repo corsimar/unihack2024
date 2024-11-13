@@ -1,2 +1,8 @@
 [theme]
 base="dark"
+
+[ui]
+hideTopBar = true
+
+[client]
+showSidebarNavigation = false
