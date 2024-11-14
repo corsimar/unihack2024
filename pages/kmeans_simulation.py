@@ -3,6 +3,10 @@ import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
+import utils
+
+utils.restrict_access("student")
+
 
 st.set_page_config(page_title="Kmeans Simulation", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
 st.markdown(

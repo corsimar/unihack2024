@@ -3,7 +3,6 @@ import streamlit.components.v1 as components
 import utils
 from streamlit_extras.stylable_container import stylable_container 
 
-
 st.set_page_config(page_title="Student Dashboard", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
 st.markdown(
     """

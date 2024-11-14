@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import utils
 
-#utils.restrict_access("student")
+utils.restrict_access("student")
 
 
 st.set_page_config(page_title="Neural Network", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')

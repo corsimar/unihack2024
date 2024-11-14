@@ -3,6 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 import utils
 
+utils.restrict_access("student")
 
 
 st.set_page_config(page_title="Can Simulation", page_icon="📄", initial_sidebar_state="collapsed", layout='wide')
@@ -24,10 +25,6 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 # Initialize session state for cylinder parameters
-if "radius_visualise" not in st.session_state:
-    st.session_state.radius_visualise = 1.0
-if "height_visualise" not in st.session_state:
-    st.session_state.height_visualise = 1.0
 if "slider_min_value" not in st.session_state:
     st.session_state.slider_min_value = 1.0
 if "slider_max_value" not in st.session_state:
@@ -39,7 +36,8 @@ if "radius" not in st.session_state:
 if "height" not in st.session_state:
     st.session_state.height = 5.0
 if "title" not in st.session_state:
-    st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    #st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    pass
 
 solution = [10, 20]
 problem = "A company of juices needs your help. They want to sell juice at a capacity (volume) of 330mL. They wish to use as little material as possible to make the cans. Can you help them and optimize the minimum surface area needed to build such a can?" 
@@ -50,34 +48,48 @@ st.write(problem)
 st.title("Visualize the problem")
 
 def update_height():
-    st.session_state.height_visualise = height_slider
-    st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    #st.session_state.height_visualise = height_slider
+    #st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    pass
     
 def update_radius():
-    st.session_state.radius_visualise = radius_slider
-    st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    #st.session_state.radius_visualise = radius_slider
+    #st.session_state.title = f"Lateral area: {(2 * np.pi * st.session_state.radius_visualise + 2 * np.pi * st.session_state.radius_visualise * st.session_state.height_visualise):.2f} cm^2<br>Volume: {(np.pi * st.session_state.radius_visualise ** 2 * st.session_state.height_visualise):.2f} cm^3"
+    pass
     
-radius_slider = st.slider("Radius", 1.0, 20.0, step=0.01, on_change=update_radius)
-height_slider = st.slider("Height", 1.0, 20.0, step=0.01, on_change=update_height)
+radius_slider = st.slider("Radius", 1.0, 20.0, step=0.01, value=st.session_state.radius_visualise, on_change=update_radius)
+height_slider = st.slider("Height", 1.0, 20.0, step=0.01, value=st.session_state.height_visualise, on_change=update_height)
 
 # Generate data for the cylinder with the updated parameters
-z = np.linspace(0, st.session_state.height_visualise, 100)
+z = np.linspace(0, height_slider, 100)
 theta = np.linspace(0, 2 * np.pi, 50)
 theta_grid, z_grid = np.meshgrid(theta, z)
-x_grid = st.session_state.radius_visualise * np.cos(theta_grid)
-y_grid = st.session_state.radius_visualise * np.sin(theta_grid)
+x_grid = radius_slider * np.cos(theta_grid)
+y_grid = radius_slider * np.sin(theta_grid)
 
 # Create the base circle (filled circle at z = 0)
 theta_base = np.linspace(0, 2 * np.pi, 100)  # More points for smoothness
-base_x = st.session_state.radius_visualise * np.cos(theta_base)
-base_y = st.session_state.radius_visualise * np.sin(theta_base)
+base_x = radius_slider * np.cos(theta_base)
+base_y = radius_slider * np.sin(theta_base)
 base_z = np.zeros_like(base_x)  # Z coordinates for the base at z = 0
 
-# Create a mesh for the base
-theta_base_grid, r_base_grid = np.meshgrid(theta_base, np.linspace(0, st.session_state.radius_visualise, 10))
+# Create a mesh for the lower base
+theta_base_grid, r_base_grid = np.meshgrid(theta_base, np.linspace(0, radius_slider, 10))
 base_x_grid = r_base_grid * np.cos(theta_base_grid)
 base_y_grid = r_base_grid * np.sin(theta_base_grid)
 base_z_grid = np.zeros_like(base_x_grid)
+
+# Create the upper base circle (filled circle at z = height)
+theta_upper_base = np.linspace(0, 2 * np.pi, 100)  # More points for smoothness
+upper_base_x = radius_slider * np.cos(theta_base)
+upper_base_y = radius_slider * np.sin(theta_base)
+upper_base_z = np.ones_like(upper_base_x) * height_slider  # Z coordinates for the base at z = 0
+
+# Create a mesh for the upper base
+theta_upper_base_grid, r_upper_base_grid = np.meshgrid(theta_base, np.linspace(0, radius_slider, 10))
+upper_base_x_grid = r_upper_base_grid * np.cos(theta_upper_base_grid)
+upper_base_y_grid = r_upper_base_grid * np.sin(theta_upper_base_grid)
+upper_base_z_grid = np.zeros_like(upper_base_x_grid) * height_slider
 
 # Create the Plotly figure with updated parameters
 fig = go.Figure(data=[
@@ -90,12 +102,20 @@ fig = go.Figure(data=[
     go.Surface(
         x=base_x_grid, y=base_y_grid, z=base_z_grid,
         colorscale="Viridis", opacity=1.0, showscale=False
+    ),
+    # Upper base as filled circle at z = height
+    go.Surface(
+        x=upper_base_x_grid, y=upper_base_y_grid, z=upper_base_z_grid,
+        colorscale="Viridis", opacity=0.7, showscale=False
     )
 ])
 
+lateral_area = 2 * np.pi * radius_slider ** 2 + 2 * np.pi * radius_slider * height_slider
+volume = np.pi * radius_slider ** 2 * height_slider
+
 # Customize layout
 fig.update_layout(
-    title=st.session_state.title,
+    title=f"Lateral Area: {lateral_area} cm^2<br>Volume: {volume} cm^3",
     scene=dict(
         xaxis_title="X",
         yaxis_title="Y",
@@ -201,4 +221,3 @@ if prompt := st.chat_input("What is up?"):
             response = st.write_stream(stream)
             response_placeholder.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
-
