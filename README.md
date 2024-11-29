@@ -77,6 +77,32 @@ Our solution revolves around **live, interactive experiments** with a gamificati
 
 ---
 
+## Preview
+### Teacher View
+1. **Lessons**
+    ![image](https://github.com/user-attachments/assets/afd2cbbf-c09d-4072-bbf0-21e36dcbba15)
+2. **Creating a new lesson**
+    ![image](https://github.com/user-attachments/assets/0ae00b8e-6013-4741-95a2-55128742e35a)
+    ![image](https://github.com/user-attachments/assets/97ee4261-deec-4cf4-b7e0-64daa327454c)
+    ![image](https://github.com/user-attachments/assets/4337065f-5cb3-4514-b425-5b4a920290ee)
+    ![image](https://github.com/user-attachments/assets/dbc1613d-bea1-4fe3-aec9-12c063c79fc0)
+    ![image](https://github.com/user-attachments/assets/b7bb0038-49e9-4d93-97b3-54f1559f011b)
+
+### Student View
+1. **Dashboard**
+   ![image](https://github.com/user-attachments/assets/8e82ad5b-30fa-430f-af7c-f0b290ccf7d1)
+2. **Lesson View**
+   ![image](https://github.com/user-attachments/assets/f48c1355-dfd3-4036-91b2-757ef1caf9b6)
+3. **Experiments**
+    ![image](https://github.com/user-attachments/assets/353fedfd-bfb7-4af3-aab3-d42ade173598)
+    ![image](https://github.com/user-attachments/assets/2f76472b-730f-4269-8192-adefad0e25fd)
+    ![image](https://github.com/user-attachments/assets/e7c51af4-7985-42c7-9142-c76bd3a1c898)
+    ![image](https://github.com/user-attachments/assets/d99dcc09-ab04-4064-9fcc-7d1fcab3bb70)
+4. **Chatbot help**
+   ![image](https://github.com/user-attachments/assets/779915b4-d23f-46f4-81f5-e4ca931699db)
+
+   
+
 ### Built By  
 **Chisilev Andrei and Constantinescu Mario-Cristian**  
 📅 **Weekend Project at Unihack Hackathon 2024**  
